@@ -23,10 +23,8 @@ import { QuestionSystem, validateAnswer } from '../systems/QuestionSystem';
 import { ScoreSystem } from '../systems/ScoreSystem';
 import { BossSpeechBubble } from '../ui/BossSpeechBubble';
 import { BattleHud } from '../ui/BattleHud';
-import { PhaseResetButton } from '../ui/PhaseResetButton';
-import { UiPanel } from '../ui/UiPanel';
+import { EndPhaseModal } from '../ui/EndPhaseModal';
 import { getTextStyle } from '../ui/theme/uiFactory';
-import { uiTheme } from '../ui/theme/uiTheme';
 import { DifficultyMode } from '../types/DifficultyMode';
 import { Question } from '../types/Question';
 
@@ -44,7 +42,7 @@ export class BattleScene extends Phaser.Scene {
   private bossSpeechBubble!: BossSpeechBubble;
   private battleHud!: BattleHud;
   private feedbackText!: Phaser.GameObjects.Text;
-  private phaseResetButton?: PhaseResetButton;
+  private endPhaseModal?: EndPhaseModal;
 
   private questionSystem!: QuestionSystem;
   private scoreSystem!: ScoreSystem;
@@ -230,8 +228,8 @@ export class BattleScene extends Phaser.Scene {
       this.bossAttackSystem.dispose();
       this.feedbackSystem.cancelHitStop();
       this.questionPresentationSystem.cancel();
-      this.phaseResetButton?.destroy();
-      this.phaseResetButton = undefined;
+      this.endPhaseModal?.destroy();
+      this.endPhaseModal = undefined;
     });
   }
 
@@ -468,39 +466,19 @@ export class BattleScene extends Phaser.Scene {
     this.feedbackSystem.cancelHitStop();
     this.questionPresentationSystem.cancel();
     this.physics.pause();
-    this.phaseResetButton?.destroy();
-    this.phaseResetButton = undefined;
-
-    this.add.rectangle(640, 360, 1280, 720, uiTheme.colors.surfaceOverlay, 0.56).setDepth(80);
-    const endPanel = new UiPanel(this, 640, 392, 520, 260, 'modal', uiTheme.radii.modal);
-    endPanel.setDepth(81);
-    this.add
-      .text(640, 324, title, getTextStyle('heroTitle', {
-        fontSize: '54px',
-        color: titleColor,
-        stroke: '#7c2d12',
-        strokeThickness: 6
-      }))
-      .setOrigin(0.5)
-      .setDepth(82);
-    this.add
-      .text(640, 404, subtitle, getTextStyle('body', {
-        fontSize: '24px',
-        align: 'center',
-        wordWrap: { width: 420 }
-      }))
-      .setOrigin(0.5)
-      .setDepth(82);
-
-    this.phaseResetButton = new PhaseResetButton(
-      this,
-      640,
-      494,
-      state === 'victory' ? 'Reiniciar' : 'Tentar novamente',
-      () => {
+    this.endPhaseModal?.destroy();
+    this.endPhaseModal = new EndPhaseModal(this, {
+      mode: state,
+      title,
+      message: subtitle,
+      score: this.scoreSystem.getScore(),
+      onRetry: () => {
         this.restartPhase();
+      },
+      onBackToLobby: () => {
+        this.returnToLobby();
       }
-    );
+    });
   }
 
   private isSequenceCurrent(token: number): boolean {
@@ -532,7 +510,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private restartPhase(): void {
-    this.phaseResetButton?.setDisabled(true);
+    this.endPhaseModal?.disableActions();
     this.sequenceToken += 1;
     this.feedbackSystem.cancelHitStop();
     this.physics.resume();
@@ -545,6 +523,23 @@ export class BattleScene extends Phaser.Scene {
       this.scene.restart({
         questions: this.questions,
         difficulty: this.difficultyMode
+      });
+    });
+  }
+
+  private returnToLobby(): void {
+    this.endPhaseModal?.disableActions();
+    this.sequenceToken += 1;
+    this.feedbackSystem.cancelHitStop();
+    this.physics.resume();
+    this.input.enabled = false;
+    this.time.delayedCall(0, () => {
+      if (!this.scene.isActive()) {
+        return;
+      }
+
+      this.scene.start('LobbyScene', {
+        initialDifficulty: this.difficultyMode
       });
     });
   }

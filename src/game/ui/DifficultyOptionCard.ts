@@ -7,6 +7,7 @@ type DifficultyOptionCardConfig = {
   mode: DifficultyMode;
   title: string;
   description: string;
+  variant?: 'default' | 'compact' | 'sidebar';
   onSelected: (mode: DifficultyMode) => void;
 };
 
@@ -17,8 +18,6 @@ export class DifficultyOptionCard extends Phaser.GameObjects.Container {
   private readonly surface: Phaser.GameObjects.Graphics;
   private readonly gloss: Phaser.GameObjects.Graphics;
   private readonly accentBar: Phaser.GameObjects.Graphics;
-  private readonly badgeBubble: Phaser.GameObjects.Graphics;
-  private readonly badgeText: Phaser.GameObjects.Text;
   private readonly titleText: Phaser.GameObjects.Text;
   private readonly descriptionText: Phaser.GameObjects.Text;
   private readonly hitZone: Phaser.GameObjects.Rectangle;
@@ -31,15 +30,6 @@ export class DifficultyOptionCard extends Phaser.GameObjects.Container {
     this.surface = scene.add.graphics();
     this.gloss = scene.add.graphics();
     this.accentBar = scene.add.graphics();
-    this.badgeBubble = scene.add.graphics();
-    this.badgeText = scene.add
-      .text(0, 0, 'ATIVO', getTextStyle('sectionLabel', {
-        fontSize: '10px',
-        fontStyle: 'bold',
-        color: uiTheme.colors.textPrimary
-      }))
-      .setOrigin(0.5)
-      .setVisible(false);
     this.titleText = scene.add
       .text(-72, -16, config.title, getTextStyle('panelTitle', {
         fontSize: '21px',
@@ -63,8 +53,6 @@ export class DifficultyOptionCard extends Phaser.GameObjects.Container {
       this.surface,
       this.gloss,
       this.accentBar,
-      this.badgeBubble,
-      this.badgeText,
       this.titleText,
       this.descriptionText,
       this.hitZone
@@ -143,8 +131,21 @@ export class DifficultyOptionCard extends Phaser.GameObjects.Container {
   }
 
   private redraw(): void {
-    const width = uiTheme.difficulty.cardWidth;
-    const height = uiTheme.difficulty.cardHeight;
+    const variant = this.config.variant ?? 'default';
+    const isCompact = variant === 'compact';
+    const isSidebar = variant === 'sidebar';
+    const width =
+      variant === 'compact'
+        ? uiTheme.difficulty.compactCardWidth
+        : variant === 'sidebar'
+          ? uiTheme.difficulty.sidebarCardWidth
+          : uiTheme.difficulty.cardWidth;
+    const height =
+      variant === 'compact'
+        ? uiTheme.difficulty.compactCardHeight
+        : variant === 'sidebar'
+          ? uiTheme.difficulty.sidebarCardHeight
+          : uiTheme.difficulty.cardHeight;
     const radius = uiTheme.radii.card;
     const left = -width / 2;
     const top = -height / 2;
@@ -163,8 +164,10 @@ export class DifficultyOptionCard extends Phaser.GameObjects.Container {
       : isHover || isPressed
         ? uiTheme.colors.brand
         : uiTheme.colors.borderMuted;
-    const borderWidth = isSelected ? 3 : uiTheme.borders.standard;
-    const shadowAlpha = isSelected ? 0.22 : isHover ? 0.16 : 0.1;
+    const borderWidth = isSelected ? 4 : uiTheme.borders.standard;
+    const shadowAlpha = isSelected ? 0.26 : isHover ? 0.18 : 0.1;
+
+    this.hitZone.setSize(width, height);
 
     drawPanelShadow(this.shadow, width, height, radius, shadowAlpha, 5);
 
@@ -173,25 +176,35 @@ export class DifficultyOptionCard extends Phaser.GameObjects.Container {
     this.surface.lineStyle(borderWidth, borderColor, 1);
     this.surface.fillRoundedRect(left, top, width, height, radius);
     this.surface.strokeRoundedRect(left, top, width, height, radius);
+    if (isSelected) {
+      this.surface.lineStyle(2, borderColor, 0.28);
+      this.surface.strokeRoundedRect(left + 6, top + 6, width - 12, height - 12, radius - 4);
+    }
 
     this.gloss.clear();
-    this.gloss.fillStyle(0xffffff, isSelected ? 0.22 : 0.14);
-    this.gloss.fillRoundedRect(left + 10, top + 8, width - 20, 14, 9);
+    this.gloss.fillStyle(0xffffff, isSelected ? 0.24 : 0.14);
+    this.gloss.fillRoundedRect(left + 10, top + 8, width - 20, isCompact ? 10 : isSidebar ? 12 : 14, 9);
 
     this.accentBar.clear();
-    this.accentBar.fillStyle(accentColor, isSelected ? 0.96 : 0.82);
-    this.accentBar.fillRoundedRect(left + 12, top + 12, 12, height - 24, 8);
-
-    this.badgeBubble.clear();
-    if (isSelected) {
-      const badgeRadius = uiTheme.difficulty.selectedBadgeRadius;
-      this.badgeBubble.fillStyle(accentColor, 1);
-      this.badgeBubble.fillRoundedRect(36, -30, 48, 24, badgeRadius);
-      this.badgeText.setPosition(60, -18);
-      this.badgeText.setVisible(true);
+    this.accentBar.fillStyle(accentColor, isSelected ? 1 : 0.86);
+    if (isCompact) {
+      this.accentBar.fillRoundedRect(left + 10, top + 10, width - 20, 8, 6);
+    } else if (isSidebar) {
+      this.accentBar.fillRoundedRect(left + 10, top + 12, width - 20, 9, 6);
     } else {
-      this.badgeText.setVisible(false);
+      this.accentBar.fillRoundedRect(left + 12, top + 12, 12, height - 24, 8);
     }
+
+    this.titleText
+      .setPosition(isCompact ? 0 : isSidebar ? 0 : -72, isCompact ? -2 : isSidebar ? -4 : -16)
+      .setOrigin(isCompact || isSidebar ? 0.5 : 0, 0.5)
+      .setFontSize(isCompact ? '16px' : isSidebar ? '18px' : '21px');
+    this.descriptionText
+      .setPosition(isCompact ? 0 : isSidebar ? 0 : -72, isCompact ? 16 : isSidebar ? 20 : 14)
+      .setOrigin(isCompact || isSidebar ? 0.5 : 0, 0.5)
+      .setWordWrapWidth(isCompact ? 76 : isSidebar ? 118 : 138)
+      .setAlign(isCompact || isSidebar ? 'center' : 'left')
+      .setFontSize(isCompact ? '11px' : isSidebar ? '12px' : '14px');
 
     this.titleText.setColor(uiTheme.colors.textDark);
     this.descriptionText.setColor(isSelected ? '#334155' : '#475569');

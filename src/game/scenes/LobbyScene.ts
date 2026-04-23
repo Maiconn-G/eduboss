@@ -4,11 +4,19 @@ import { DifficultyMode } from '../types/DifficultyMode';
 import { StartScreen } from '../ui/StartScreen';
 import { Question } from '../types/Question';
 
+type LobbySceneData = {
+  initialDifficulty?: DifficultyMode;
+};
+
 export class LobbyScene extends Phaser.Scene {
   private selectedDifficulty: DifficultyMode = DEFAULT_DIFFICULTY_MODE;
 
   constructor() {
     super('LobbyScene');
+  }
+
+  public init(data: LobbySceneData): void {
+    this.selectedDifficulty = data.initialDifficulty ?? this.selectedDifficulty;
   }
 
   public create(): void {

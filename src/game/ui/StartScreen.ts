@@ -24,6 +24,7 @@ export class StartScreen extends Phaser.GameObjects.Container {
   private readonly startButton: MenuButton;
   private readonly titleText: Phaser.GameObjects.Text;
   private readonly subtitleText: Phaser.GameObjects.Text;
+  private readonly taglineText: Phaser.GameObjects.Text;
   private readonly sectionTitle: Phaser.GameObjects.Text;
   private readonly sectionLead: Phaser.GameObjects.Text;
   private readonly divider: Phaser.GameObjects.Graphics;
@@ -49,12 +50,14 @@ export class StartScreen extends Phaser.GameObjects.Container {
     this.titleText = scene.add
       .text(
         640,
-        98,
-        'EduBoss\nArena do Conhecimento',
+        38,
+        'EduBoss',
         getTextStyle('heroTitle', {
           color: uiTheme.colors.textPrimary,
           align: 'center',
-          lineSpacing: 10
+          fontSize: '40px',
+          stroke: '#6d8fbe',
+          strokeThickness: 5
         })
       )
       .setOrigin(0.5)
@@ -63,30 +66,48 @@ export class StartScreen extends Phaser.GameObjects.Container {
     this.subtitleText = scene.add
       .text(
         640,
-        186,
-        'Responda certo, sobreviva aos ataques e derrote o boss da sala.',
-        getTextStyle('body', {
-          color: '#dbeafe',
-          fontSize: '21px',
+        90,
+        'Arena do Conhecimento',
+        getTextStyle('heroTitle', {
+          color: '#eef6ff',
+          fontSize: '30px',
           align: 'center',
-          wordWrap: { width: 620 }
+          stroke: '#6d8fbe',
+          strokeThickness: 4
         })
       )
       .setOrigin(0.5)
       .setDepth(15);
 
-    this.shellPanel = new UiPanel(scene, 640, 434, 920, 558, 'light', uiTheme.radii.modal);
+    this.taglineText = scene.add
+      .text(
+        640,
+        128,
+        'Responda certo, sobreviva aos ataques e derrote o boss da sala.',
+        getTextStyle('body', {
+          color: '#dbeafe',
+          fontSize: '16px',
+          align: 'center',
+          stroke: '#5f81ad',
+          strokeThickness: 3,
+          wordWrap: { width: 760 }
+        })
+      )
+      .setOrigin(0.5)
+      .setDepth(15);
+
+    this.shellPanel = new UiPanel(scene, 640, 436, 1048, 586, 'light', uiTheme.radii.modal);
     this.shellPanel.setDepth(11);
 
     this.sectionTitle = scene.add
-      .text(640, 212, 'Prepare-se para a batalha', getTextStyle('panelTitle', { color: '#1d4ed8' }))
+      .text(640, 210, 'Prepare-se para a batalha', getTextStyle('panelTitle', { color: '#1d4ed8' }))
       .setOrigin(0.5)
       .setDepth(16);
 
     this.sectionLead = scene.add
       .text(
         640,
-        238,
+        236,
         'Entenda a dinamica, memorize os controles e comece sua primeira rodada.',
         getTextStyle('bodyMuted', {
           color: '#475569',
@@ -100,29 +121,33 @@ export class StartScreen extends Phaser.GameObjects.Container {
 
     const instructionsWidth = 446;
     const controlsWidth = 326;
-    const columnGap = 32;
-    const contentWidth = instructionsWidth + controlsWidth + columnGap;
+    const difficultyWidth = uiTheme.difficulty.sidebarContainerWidth;
+    const columnGap = 24;
+    const contentWidth = instructionsWidth + controlsWidth + difficultyWidth + columnGap * 2;
     const contentLeft = 640 - contentWidth / 2;
     const instructionsCenterX = contentLeft + instructionsWidth / 2;
     const controlsCenterX = contentLeft + instructionsWidth + columnGap + controlsWidth / 2;
+    const difficultyCenterX =
+      contentLeft + instructionsWidth + columnGap + controlsWidth + columnGap + difficultyWidth / 2;
     const dividerX = contentLeft + instructionsWidth + columnGap / 2;
 
-    this.instructionsPanel = new InstructionsPanel(scene, instructionsCenterX, 454);
+    this.instructionsPanel = new InstructionsPanel(scene, instructionsCenterX, 460);
     this.instructionsPanel.setDepth(16);
 
-    this.controlsPanel = new ControlsPanel(scene, controlsCenterX, 380);
+    this.controlsPanel = new ControlsPanel(scene, controlsCenterX, 400);
     this.controlsPanel.setDepth(16);
 
-    this.difficultySelector = new DifficultySelector(scene, 640, 584, {
-      initialMode: config.initialDifficulty
+    this.difficultySelector = new DifficultySelector(scene, difficultyCenterX, 460, {
+      initialMode: config.initialDifficulty,
+      layout: 'sidebar'
     });
     this.difficultySelector.setDepth(16);
 
     this.divider = scene.add.graphics().setDepth(15);
     this.divider.lineStyle(2, uiTheme.colors.borderMuted, 0.28);
-    this.divider.lineBetween(dividerX, 300, dividerX, 554);
+    this.divider.lineBetween(dividerX, 292, dividerX, 668);
 
-    this.startButton = new MenuButton(scene, 640, 688, 'Comecar batalha', () => {
+    this.startButton = new MenuButton(scene, controlsCenterX, 626, 'Comecar batalha', () => {
       void this.handleStart(config.onStart);
     });
     this.startButton.setDepth(18);
@@ -130,6 +155,7 @@ export class StartScreen extends Phaser.GameObjects.Container {
     this.add([
       this.titleText,
       this.subtitleText,
+      this.taglineText,
       this.shellPanel,
       this.sectionTitle,
       this.sectionLead,
@@ -143,6 +169,7 @@ export class StartScreen extends Phaser.GameObjects.Container {
     this.entranceTargets.push(
       this.titleText,
       this.subtitleText,
+      this.taglineText,
       this.shellPanel,
       this.sectionTitle,
       this.sectionLead,
@@ -205,14 +232,15 @@ export class StartScreen extends Phaser.GameObjects.Container {
     this.animationSystem.playEntrance([
       { target: this.titleText, delay: 0, offsetY: 16, scaleFrom: 0.97 },
       { target: this.subtitleText, delay: menuMotion.menuStaggerDelay, offsetY: 14, scaleFrom: 0.985 },
-      { target: this.shellPanel, delay: menuMotion.menuStaggerDelay * 2, offsetY: 22, scaleFrom: 0.98 },
-      { target: this.sectionTitle, delay: menuMotion.menuStaggerDelay * 3, offsetY: 16, scaleFrom: 0.985 },
-      { target: this.sectionLead, delay: menuMotion.menuStaggerDelay * 4, offsetY: 16, scaleFrom: 0.985 },
-      { target: this.divider, delay: menuMotion.menuStaggerDelay * 5, offsetY: 8, scaleFrom: 1 },
-      { target: this.instructionsPanel, delay: menuMotion.menuStaggerDelay * 5, offsetY: 18, scaleFrom: 0.985 },
-      { target: this.controlsPanel, delay: menuMotion.menuStaggerDelay * 6, offsetY: 18, scaleFrom: 0.985 },
-      { target: this.difficultySelector, delay: menuMotion.menuStaggerDelay * 7, offsetY: 18, scaleFrom: 0.985 },
-      { target: this.startButton, delay: menuMotion.menuStaggerDelay * 8, offsetY: 20, scaleFrom: 0.97 }
+      { target: this.taglineText, delay: menuMotion.menuStaggerDelay * 2, offsetY: 12, scaleFrom: 0.99 },
+      { target: this.shellPanel, delay: menuMotion.menuStaggerDelay * 3, offsetY: 22, scaleFrom: 0.98 },
+      { target: this.sectionTitle, delay: menuMotion.menuStaggerDelay * 4, offsetY: 16, scaleFrom: 0.985 },
+      { target: this.sectionLead, delay: menuMotion.menuStaggerDelay * 5, offsetY: 16, scaleFrom: 0.985 },
+      { target: this.divider, delay: menuMotion.menuStaggerDelay * 6, offsetY: 8, scaleFrom: 1 },
+      { target: this.instructionsPanel, delay: menuMotion.menuStaggerDelay * 6, offsetY: 18, scaleFrom: 0.985 },
+      { target: this.controlsPanel, delay: menuMotion.menuStaggerDelay * 7, offsetY: 18, scaleFrom: 0.985 },
+      { target: this.difficultySelector, delay: menuMotion.menuStaggerDelay * 8, offsetY: 18, scaleFrom: 0.985 },
+      { target: this.startButton, delay: menuMotion.menuStaggerDelay * 9, offsetY: 20, scaleFrom: 0.97 }
     ]);
 
     this.animationSystem.playCascade(
