@@ -1,0 +1,30 @@
+export const colorPalette = {
+  surfaceDark: 0x10213a,
+  surfaceDarkRaised: 0x17304f,
+  surfaceDarkMuted: 0x213755,
+  surfaceLight: 0xf8fbff,
+  surfaceLightMuted: 0xeaf1fb,
+  surfaceOverlay: 0x0b1120,
+  borderSoft: 0xd8e7ff,
+  borderMuted: 0x8aa9d6,
+  shadow: 0x020617,
+  textPrimary: '#f8fbff',
+  textSecondary: '#c8d6eb',
+  textMuted: '#8fa4c3',
+  textDark: '#10213a',
+  textAccent: '#93c5fd',
+  brand: 0x3b82f6,
+  brandHover: 0x60a5fa,
+  brandPressed: 0x2563eb,
+  brandSoft: 0xdbeafe,
+  success: 0x22c55e,
+  successSoft: 0xdcfce7,
+  warning: 0xf59e0b,
+  warningSoft: 0xfef3c7,
+  danger: 0xef4444,
+  dangerSoft: 0xfee2e2,
+  neutralSoft: 0xe2e8f0,
+  neutral: 0x64748b
+} as const;
+
+export type ColorPalette = typeof colorPalette;
