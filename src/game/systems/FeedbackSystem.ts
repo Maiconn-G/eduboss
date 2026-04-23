@@ -57,22 +57,7 @@ export class FeedbackSystem {
   }
 
   public playCannonFireFeedback(cannon: Cannon): void {
-    this.scene.tweens.killTweensOf(cannon);
-    cannon.setScale(1);
-
-    this.scene.tweens.add({
-      targets: cannon,
-      scaleX: 0.92,
-      scaleY: 1.08,
-      yoyo: true,
-      duration: 100,
-      ease: 'Quad.easeOut',
-      onComplete: () => {
-        if (cannon.active) {
-          cannon.setScale(1);
-        }
-      }
-    });
+    cannon.playFireAnimation();
   }
 
   public playSmashTelegraphFeedback(marker: DangerMarker): void {

@@ -133,7 +133,7 @@ export class BattleScene extends Phaser.Scene {
   private createEntities(): void {
     this.boss = new Boss(this, this.scale.width / 2, balanceConfig.bossHoverY, this.questionSystem.getTotalQuestions());
     this.player = new Player(this, 120, 620);
-    this.cannon = new Cannon(this, this.scale.width - 120, 616);
+    this.cannon = new Cannon(this, this.scale.width - 120, 634);
     this.bossMovementSystem = new BossMovementSystem(this, this.boss);
 
     this.bossAttackSystem = new BossAttackSystem(

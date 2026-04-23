@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import cannonImageUrl from '../../../assets/images/cannon.png';
 import playerSpriteSheetUrl from '../../../assets/images/player.png';
 import { BossAnimationController } from '../systems/BossAnimationController';
 import { PlayerAnimationController } from '../systems/PlayerAnimationController';
@@ -11,6 +12,10 @@ export class BootScene extends Phaser.Scene {
   public preload(): void {
     if (!this.textures.exists('player-source') && !this.textures.exists('player')) {
       this.load.image('player-source', playerSpriteSheetUrl);
+    }
+
+    if (!this.textures.exists('cannon')) {
+      this.load.image('cannon', cannonImageUrl);
     }
 
     BossAnimationController.preload(this);
